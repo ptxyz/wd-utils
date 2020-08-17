@@ -1,0 +1,11 @@
+{
+  "version":"2019-04-30",
+  "apikey": "",
+  "url": "https://gateway.watsonplatform.net/discovery/api",
+  "environment_id": "",
+  "collection_id": "",
+  "configuration_id": "",
+  "production": false,
+  "api_version": "v1",
+  "authenticator": "iam"
+}

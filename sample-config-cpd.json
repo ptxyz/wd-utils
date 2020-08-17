@@ -1,0 +1,13 @@
+{
+  "version":"2019-11-22",
+  "username": "",
+  "password": "",
+  "cluster_url": "",
+  "url": "",
+  "project_id": "",
+  "environment_id": "",
+  "collection_id": "",
+  "production": false,
+  "api_version": "v2",
+  "authenticator": "cpd"
+}
