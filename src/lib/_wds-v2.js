@@ -100,8 +100,6 @@ async function getQueryResultV2 (conn, options) {
       }),
     conn)
   try {
-    console.log(params)
-    console.log(conn.d_v2)
     const r = (await as.retry(
       {
         times: CONST.DEFAULT_VALUES.RETRY_ATTEMPTS,

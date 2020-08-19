@@ -27,7 +27,7 @@ async function main (argv) {
     query: argv.is_nlq ? false : argv.query,
     naturalLanguageQuery: argv.is_nlq ? argv.query : false,
     filter: argv.filter,
-    _return: argv.return
+    _return: argv.return.split(',')
   })
 
   options = core.helpers.generateParameters(options, conn)
