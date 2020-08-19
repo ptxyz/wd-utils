@@ -25,7 +25,7 @@ async function main (argv) {
   // assign in values from argv
   options = Object.assign(options, {
     query: argv.is_nlq ? false : argv.query,
-    natural_langauage_query: argv.is_nlq ? argv.query : false,
+    naturalLanguageQuery: argv.is_nlq ? argv.query : false,
     filter: argv.filter,
     _return: argv.return
   })
