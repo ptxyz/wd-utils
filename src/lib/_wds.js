@@ -37,7 +37,7 @@ const CONST = require('./_const')
 // - deleteDocument
 // - deleteDocumentFromQuery
 // - deleteTrainingData
-/// //////////////////////////
+//
 
 //
 // -- CREATE --
