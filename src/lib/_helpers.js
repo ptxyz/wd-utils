@@ -66,7 +66,7 @@ function generateParameters (params, connectionData) {
   if (!params._return) delete params._return
   if (!params.filter) delete params.filter
   if (!params.query) delete params.query
-  if (!params.natural_language_query) delete params.natural_language_query
+  if (!params.naturalLanguageQuery) delete params.naturalLanguageQuery
   return params
 }
 

@@ -1,4 +1,3 @@
-const yesno = require('yesno')
 function devWrapper (f) {
   return async (...args) => {
     console.log(
@@ -12,14 +11,6 @@ function devWrapper (f) {
 ******************************************************************
 `
     )
-    const acceptDev = await yesno({
-      question: 'Would you like to continue with an operation that is currently in development? (yN)',
-      defaultValue: false
-    })
-    if (!acceptDev) {
-      console.log('exiting')
-      process.exit(0)
-    }
     f.apply(args)
   }
 }
@@ -46,6 +37,7 @@ module.exports = {
   'list-training-data-containing-document': require('./v1/list-training-data-containing-document'),
   'list-operations': listOperations,
   'query-collection': require('./v1/query-collection'),
+  'query-collection-v2': devWrapper(require('./v2/query-collection-v2')),
   'remove-all-failed-examples-from-training-data': require('./v1/remove-all-failed-examples-from-training-data'),
   'remove-document-from-all-training-data': require('./v1/remove-document-from-all-training-data'),
   'remove-document-from-query': require('./v1/remove-document-from-query'),

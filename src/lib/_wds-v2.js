@@ -14,6 +14,22 @@ const path = require('path')
 // TODO: These need to be converted to be project centric instead of collection centric
 
 //
+// -- CONTENTS --
+//
+// CREATE
+// - createTrainingQueryV2
+//
+// READ
+// - getQueryResultV2
+//
+// UPDATE
+// - upsertDocumentV2
+
+// DESTROY
+// - deleteDocumentV2
+//
+
+//
 // -- CREATE --
 //
 
@@ -60,6 +76,42 @@ async function createTrainingQueryV2 (conn, q) {
     }
   }
   return ret
+}
+
+//
+// -- READ --
+//
+
+/**
+ * Returns a set of results from a query
+ *
+ * @param {WDSConnection} conn
+ * @param {Object} options query parameters to apply
+ * @returns {Result}
+ */
+async function getQueryResultV2 (conn, options) {
+  const params = generateParameters(
+    Object.assign(
+      options,
+      {
+        projectId: conn.data.project_id,
+        collectionIds: [conn.data.collection_id],
+        xWatsonLoggingOptOut: true
+      }),
+    conn)
+  try {
+    console.log(params)
+    console.log(conn.d_v2)
+    const r = (await as.retry(
+      {
+        times: CONST.DEFAULT_VALUES.RETRY_ATTEMPTS,
+        interval: CONST.DEFAULT_VALUES.RETRY_INTERVAL
+      }, async () => conn.d_v2.query(params))).result
+    return new Result(1, 0, 0, [r])
+  } catch (e) {
+    console.error(e.message)
+    throw new Error('query failed')
+  }
 }
 
 //
@@ -172,6 +224,7 @@ async function deleteDocumentV2 (conn, options) {
 
 module.exports = {
   createTrainingQueryV2,
+  getQueryResultV2,
   upsertDocumentV2,
   deleteDocumentV2
 }

@@ -33,6 +33,7 @@ These scripts are provided as is with no implied warranty. *Please use at your o
     - [get-collection-notices](#get-collection-notices)
     - [list-training-data-containing-document](#list-training-data-containing-document)
     - [query-collection](#query-collection)
+    - [query-collection-v2](#query-collection-v2)
     - [remove-all-failed-examples-from-training-data](#remove-all-failed-examples-from-training-data)
     - [remove-document-from-all-training-data](#remove-document-from-all-training-data)
     - [remove-document-from-single-query](#remove-document-from-single-query)
@@ -405,6 +406,7 @@ Options:
   --filter, -f        filter to apply before deleting documents    [default: ""]
   --query, -q         query to apply                               [default: ""]
   --return, -r        fields to return
+  --out, -o           write results to this file
   --is_nlq            query is a natural langauge query[boolean] [default: true]
   --extra_params, -x  an extra parameter to include in NodeJS SDK
                       request for WDS query API. Provided as key:value. For
@@ -414,6 +416,33 @@ Options:
 ```
 
 Example: `npm run operation -- query-collection -c ./config/sandbox.json -q ducks -r id,text`
+
+
+### query-collection-v2
+
+**DEVELOPMENT**
+
+Queries a collection using the v2 APIs
+
+```
+query-collection-v2
+Options:
+  --help              Show help                                        [boolean]
+  --version           Show version number                              [boolean]
+  --filter, -f        filter to apply before deleting documents    [default: ""]
+  --query, -q         query to apply                               [default: ""]
+  --return, -r        fields to return
+  --out, -o           write results to this file
+  --is_nlq            query is a natural langauge query[boolean] [default: true]
+  --extra_params, -x  an extra parameter to include in NodeJS SDK request for
+                      WDS query API. Provided as key:value. For instance,
+                      count:5. Can be specified multiple times.
+  --dry_run, -z       dry run of operation            [boolean] [default: false]
+  --connection, -c    WDS connection info JSON                        [required]
+```
+
+Example: `npm run operation -- query-collection-v2 -c ./config/sandbox.json -q ducks -r id,text`
+
 
 ### remove-all-failed-examples-from-training-data
 

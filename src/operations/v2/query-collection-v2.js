@@ -32,12 +32,11 @@ async function main (argv) {
 
   options = core.helpers.generateParameters(options, conn)
 
-  const r = await core.wds.getQueryResult(conn, options)
+  const r = await core.wds_v2.getQueryResultV2(conn, options)
 
   console.log(util.inspect(r.data[0], { depth: 8, maxArrayLength: Infinity, colors: true }))
 
   if (!process.env.DRY_RUN) {
-    console.log(argv)
     if (argv.out) {
       await core.helpers.writeObjectToFile(r.data[0], argv.out)
     }
