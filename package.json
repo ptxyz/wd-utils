@@ -19,7 +19,7 @@
     "glob": "^7.1.6",
     "has-value": "^2.0.2",
     "ibm-watson": "^5.5.0",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.20",
     "mime-types": "^2.1.27",
     "mkdirp": "^1.0.4",
     "moment": "^2.25.3",
