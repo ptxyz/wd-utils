@@ -20,6 +20,7 @@ These scripts are provided as is with no implied warranty. *Please use at your o
     - [Get a list of filenames and metadata in a collection](#get-a-list-of-filenames-and-metadata-in-a-collection)
     - [Move training data from one collection to another](#move-training-data-from-one-collection-to-another)
     - [Correcting errors in training data](#correcting-errors-in-training-data)
+    - [Filtering the event log](#filtering-the-event-log)
   - [Operations References](#operations-references)
     - [backup-documents-as-json](#backup-documents-as-json)
     - [backup-file-metadata](#backup-file-metadata)
@@ -29,6 +30,7 @@ These scripts are provided as is with no implied warranty. *Please use at your o
     - [delete-documents-by-filter](#delete-documents-by-filter)
     - [delete-documents-by-filter-v2](#delete-documents-by-filter-v2)
     - [generate-logs-csv-report](#generate-logs-csv-report)
+      - [Current Limitations](#current-limitations)
     - [get-document-id-field-mapping](#get-document-id-field-mapping)
     - [get-collection-information](#get-collection-information)
     - [get-collection-notices](#get-collection-notices)
@@ -148,6 +150,17 @@ The dry run flag is always `-z`
 1. Use `remove-all-failed-examples-from-training-data` to automatically remove all examples from training data that has been reported as an error in the notices API
 2. Alternatively, use a combination of `get-collection-notices`, `remove-document-from-all-training-data`, `remove-document-from-query`, and `list-training-data-containing-document` to work with more precision to correct errors.
    1. When using `get-collection-notices`, the notices can be limited using the filter argument. For instance, it can be limited to only notices about missing document ids with `-f "notices.notice_id::missing_document_id"`
+
+### Filtering the event log
+There are situations where it is beneficial to limit the results in the `generate-logs-csv-report` operation. For instance, the report could be limited queries that contain a specific term, queries that surfaced a specific document, or queries that surfaced documents from a specific collection.
+
+Some common filters to apply are shown as samples below:
+
+`-f document_results.results.collection_id::<COLLECTION_ID>`
+
+`-f document_results.results.document_id::<DOCUMENT_ID>`
+
+`-f natural_language_query:<TERM OR PHRASE>`
 
 ## Operations References
 
@@ -301,6 +314,32 @@ Example: `npm run operation -- delete-documents-by-filter-v2 -c ./config/sandbox
 **DEVELOPMENT**
 
 Generates a CSV of logged natural language queries and the latest returned documents. Documents can be given a human readable name with the `title_field` argument
+
+#### Current Limitations
+There are limitations to this operation in two main areas
+1. The v1 logs APIs are *environment*-centric. This introduces challenges when generating a *collection*-centric report
+2. Queries and collections are *dynamic* and this introduces challenges when generting a *static* report.
+
+**Limitation 1**
+
+The logs API returns queries across an entire environment. The collection or collections that a query targets is not preserved in the logs, but the collection that a surfaced document belongs to is included in the query results. This means that results will contain queries that may have been issued against other collections, or in some situations, against the target collection and other collections because there is no mechanism in the version 1 API to only retrieve logs at the collection level.
+
+Currently, the operation is able to resolve document titles for a single target collection. This means that queries that returned documents from other collections will not be able to resolve document titles for these documents.
+
+In order to limit results to queries that target a single collection, a filter may be used with the following argument.
+
+`-f document_results.results.collection_id::<COLLECTION_ID>`
+
+*Note that this will only return results that contain AT LEAST 1 document from the target collection. Queries that return no results, even if originally applied against the target collection, will be excluded.*
+
+**Limitation 2**
+
+Additionally, if a query has been issued multiple times in the date range, the report **will only contain the document result set from the latest query.** This set may differ from earlier queries in several scenarios.
+1. If the documents in the targeted collection(s) have changed during that period
+2. If the training for the targeted collection(s) has changed during that period
+3. If the query has been issued against a different collection or set of collections
+4. If the query parameters (count, filter...) used have changed between queries
+
 
 ```
 Options:
