@@ -2,7 +2,7 @@
 All functions are async and return a Result object
 */
 const { Result } = require('./_classes')
-const { logDryRunOperation, generateParameters, getDocumentId } = require('./_helpers')
+const { logDryRunOperation, generateParameters, getDocumentId, getDateRangeBatches } = require('./_helpers')
 const fill = require('fill-range')
 const as = require('async')
 const mime = require('mime-types')
@@ -10,6 +10,7 @@ const _ = require('lodash')
 const fs = require('fs')
 const objectPath = require('object-path')
 const path = require('path')
+const moment = require('moment')
 
 const CONST = require('./_const')
 
@@ -24,10 +25,12 @@ const CONST = require('./_const')
 // - getDocumentCount
 // - getDocumentIdFieldMap
 // - getNotices
+// - getLogs
 // - getQueryResult
 // - getTrainingData
 // - getTrainingDataQuery
 // - iterateDocuments
+// - iterateLogs
 //
 // UPDATE
 // - upsertDocument
@@ -182,13 +185,10 @@ async function getDocumentIdFieldMap (conn, options) {
           skipped++
           continue
         }
-        if (options.mappedFields.split(',').length > 1) {
-          map[id] = {}
-          for (const f of options.mappedFields.split(',')) {
-            map[id][f.trim()] = objectPath.get(d, f.trim(), null)
-          }
-        } else {
-          map[id] = objectPath.get(d, options.mappedFields, null)
+        // changed to always return an object
+        map[id] = {}
+        for (const f of options.mappedFields.split(',')) {
+          objectPath.set(map[id], f.trim(), objectPath.get(d, f.trim(), null))
         }
         successes++
       }
@@ -240,6 +240,30 @@ async function getNotices (conn, options) {
  * @param {Object} options query parameters to apply
  * @returns {Result}
  */
+async function getLogs (conn, options) {
+  const params = generateParameters(
+    options,
+    conn)
+  try {
+    const r = (await as.retry(
+      {
+        times: CONST.DEFAULT_VALUES.RETRY_ATTEMPTS,
+        interval: CONST.DEFAULT_VALUES.RETRY_INTERVAL
+      }, async () => conn.d.queryLog(params))).result
+    return new Result(1, 0, 0, [r])
+  } catch (e) {
+    console.error(e.message)
+    throw new Error('query logs failed')
+  }
+}
+
+/**
+ * Returns a set of results from a query
+ *
+ * @param {WDSConnection} conn
+ * @param {Object} options query parameters to apply
+ * @returns {Result}
+ */
 async function getQueryResult (conn, options) {
   const params = generateParameters(
     Object.assign(
@@ -250,6 +274,7 @@ async function getQueryResult (conn, options) {
         xWatsonLoggingOptOut: true
       }),
     conn)
+
   try {
     const r = (await as.retry(
       {
@@ -339,7 +364,7 @@ async function * iterateDocuments (conn, options) {
     filter: options.filter
   })).data[0]
 
-  console.log(`${count} documents match conditions`)
+  // console.log(`${count} documents match conditions`)
 
   const offsets = fill(0, count - 1, options.chunkSize)
 
@@ -350,6 +375,48 @@ async function * iterateDocuments (conn, options) {
     _return: options._returns,
     sort: 'id,document_id'
   }))
+
+  for (const f of funcs) {
+    yield f
+  }
+}
+
+/**
+ * Iterate over all documents in a collection, optionally filtered.
+ * Iterator will return a promise to query for a chunk of up to CHUNKSIZE
+ * This iterator can be executed in parallel.
+ *
+ * @param {WDSConnection} conn
+ * @param {Object} options
+ * @param {String} [options.start] - start date specified in ISO 8061 format ex: 2020-05-14T09:00:00.000-05:00. defaults to 30 days ago
+ * @param {String} [options.end] - start date specified in ISO 8061 format ex: 2020-05-14T09:00:00.000-05:00. defaults to present
+ * @param {String} [options.batchSize] - retrieve logs in batches of batchSize batchUnits. typically needs to be modified only if batch will exceed 10k queries. defaults to 15.
+ * @param {String} [options.batchUnit] - unit for batchSize. defaults to "days"
+ * @param {String} [options.end] - start date specified in ISO 8061 format ex: 2020-05-14T09:00:00.000-05:00. Defaults to present
+ * @param {String} [options.filter] - optionally apply a filter to the logs.
+ * @yields {Promise} A promise to return the results of a
+ *                   query for a given chunk of logs
+ */
+function * iterateLogs (conn, options) {
+  options = _.defaults(options, {
+    batchSize: CONST.DEFAULT_VALUES.LOGS.BATCH_DAYS_SIZE,
+    batchUnit: CONST.DEFAULT_VALUES.LOGS.BATCH_UNIT,
+    filter: CONST.DEFAULT_VALUES.FILTER
+  })
+
+  const end = options.end ? moment(options.end) : moment()
+  const start = options.start ? moment(options.start) : end.clone().subtract(CONST.DEFAULT_VALUES.LOGS.START_DAYS_AGO, 'days')
+
+  const batches = getDateRangeBatches(start, end, options.batchSize, options.batchUnit)
+
+  const funcs = batches.map(v => async () => {
+    return getLogs(conn, {
+      filter: `${options.filter ? options.filter + ', ' : ''}created_timestamp >= ${moment(v.start).utc().format()}, created_timestamp < ${moment(v.end).utc().format()}`,
+      query: 'event_type:query, natural_language_query:*',
+      count: 10000,
+      sort: '-created_timestamp'
+    })
+  })
 
   for (const f of funcs) {
     yield f
@@ -583,6 +650,7 @@ module.exports = {
   getDocumentCount,
   getDocumentIdFieldMap,
   getNotices,
+  getLogs,
   getQueryResult,
   getTrainingData,
   getTrainingDataQuery,
@@ -591,5 +659,6 @@ module.exports = {
   deleteTrainingData,
   upsertDocument,
   upsertJSONBackupDocument,
-  iterateDocuments
+  iterateDocuments,
+  iterateLogs
 }

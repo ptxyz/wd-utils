@@ -28,6 +28,7 @@ These scripts are provided as is with no implied warranty. *Please use at your o
     - [delete-training-data](#delete-training-data)
     - [delete-documents-by-filter](#delete-documents-by-filter)
     - [delete-documents-by-filter-v2](#delete-documents-by-filter-v2)
+    - [generate-logs-csv-report](#generate-logs-csv-report)
     - [get-document-id-field-mapping](#get-document-id-field-mapping)
     - [get-collection-information](#get-collection-information)
     - [get-collection-notices](#get-collection-notices)
@@ -295,6 +296,47 @@ Options:
 
 Example: `npm run operation -- delete-documents-by-filter-v2 -c ./config/sandbox.json -f "id::12345" -d ./backup-documents -z`
 
+### generate-logs-csv-report
+
+**DEVELOPMENT**
+
+Generates a CSV of logged natural language queries and the latest returned documents. Documents can be given a human readable name with the `title_field` argument
+
+```
+Options:
+  --help                Show help                                      [boolean]
+  --version             Show version number                            [boolean]
+  --out, -o             path to write csv                             [required]
+  --connection, -c      WDS connection info JSON                      [required]
+  --title_field, -t     document field to use as description for output
+                                        [default: "extracted_metadata.filename"]
+  --filter, -f          apply a filter to the logs query
+  --customer_id_only    only include results with customer ids (typically, real
+                        queries)                      [boolean] [default: false]
+  --parallel_limit, -p  parallel operations (default 15)           [default: 15]
+  --batch_size          logs will be retrieved in batches as specified per batch
+                        unit and batch value. Only needs to be modified if you
+                        anticipate that you will receive more than 10k queries
+                        in a given day. Decrease this batch range so that the
+                        number of queries in the period remains below 10k
+                                                                 [default: "15"]
+  --batch_unit          logs will be retrieved in batches as specified per batch
+                        unit and batch value. Only needs to be modified if you
+                        anticipate that you will receive more than 10k queries
+                        in a given day. Decrease this batch range so that the
+                        number of queries in the period remains below 10k
+                                                               [default: "days"]
+  --start, -s           retrieve logs starting from this timestamp. Specified in
+                        ISO 8061 format ex: 2020-05-14T09:00:00.000-05:00.
+                        Defaults to 15 days ago
+  --end, -e             retrieve logs starting from this timestamp. Specified in
+                        ISO 8061 format ex: 2020-05-14T09:00:00.000-05:00.
+                        Defaults to now
+  --dry_run, -z         dry run of operation          [boolean] [default: false]
+```
+
+Example: `npm run operation -- generate-logs-csv-report -c ./config/sandbox.json`
+
 ### get-document-id-field-mapping
 
 Produces a JSON document containing mapping information for a specified id field and any arbitrary field.
@@ -307,15 +349,6 @@ Produces an output in the form:
     "<mapped-field-1>": <value>,
     "<mapped-field-2>": <value>
   }
-  ...
-}
-```
-
-or if a single mapped field is specified
-
-```
-{
-  "<id>": <mapped-field-value>
   ...
 }
 ```

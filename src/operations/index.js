@@ -31,6 +31,7 @@ module.exports = {
   'delete-training-data': require('./v1/delete-training-data'),
   'delete-documents-by-filter': require('./v1/delete-documents-by-filter'),
   'delete-documents-by-filter-v2': devWrapper(require('./v2/delete-documents-by-filter-v2')),
+  'generate-logs-csv-report': devWrapper(require('./v1/generate-logs-csv-report')),
   'get-collection-information': require('./v1/get-collection-information'),
   'get-document-id-field-mapping': require('./v1/get-document-id-field-mapping'),
   'get-collection-notices': require('./v1/get-collection-notices'),

@@ -15,6 +15,12 @@ module.exports = {
     RETRY_ATTEMPTS: 5,
     MAPPED_FIELDS: 'title',
     METADATA: {},
-    FORCE: false
+    FORCE: false,
+    LOGS: {
+      START_DAYS_AGO: 30,
+      BATCH_SIZE: 15,
+      BATCH_UNIT: 'days',
+      TITLE_FIELD: 'extracted_metadata.filename'
+    }
   }
 }

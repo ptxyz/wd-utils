@@ -1,6 +1,7 @@
 const has = require('has-value')
 const mkdirp = require('mkdirp')
 const emptyDir = require('empty-dir')
+const moment = require('moment')
 
 const path = require('path')
 const util = require('util')
@@ -105,6 +106,33 @@ function getDocumentId (doc) {
   return doc.id || doc.document_id
 }
 
+// returns an array of start and end dates in batches
+function getDateRangeBatches (start, end, batchSize, batchUnit) {
+  const ranges = []
+  let i = moment(start)
+  const to = moment(end)
+
+  let next
+  while (to > i) {
+    next = moment(i).add(batchSize, batchUnit)
+    // handle situations where the next batch is above the high limit
+    if (next > to) {
+      next = to
+    }
+    ranges.push({ start: i.utc().format(), end: next.utc().format() })
+    i = next
+  }
+
+  return ranges
+}
+
+// adds mapped data to a result set
+function addMappedDataToDocumentResults (mapping, results) {
+  for (const d of results) {
+    d._mapping = mapping[getDocumentId(d)] || {}
+  }
+}
+
 module.exports = {
   checkForMissingVariables,
   mkdirpForFile,
@@ -119,5 +147,7 @@ module.exports = {
   lookupTrainingQueryFromJSON,
   lookupTrainingExampleFromJSON,
   getMatchingQueriesAndExamples,
-  getDocumentId
+  getDocumentId,
+  getDateRangeBatches,
+  addMappedDataToDocumentResults
 }
